@@ -1,0 +1,192 @@
+# dune build @all
+# OCAMLPARAM: unset
+# Workspace root: /home/brasseur/Documents/projet_GOCass/src
+$ /usr/bin/nproc > /tmp/dune7472fe.output 2> /dev/null
+# Auto-detected concurrency: 4
+# disable binary cache
+$ /home/brasseur/.opam/default/bin/ocamlc.opt -config > /tmp/dune0f7df9.output
+# Dune context:
+#  { name = "default"
+#  ; kind = "default"
+#  ; profile = Dyn
+#  ; merlin = true
+#  ; for_host = None
+#  ; fdo_target_exe = None
+#  ; build_dir = "default"
+#  ; toplevel_path = Some External "/home/brasseur/.opam/default/lib/toplevel"
+#  ; ocaml_bin = External "/home/brasseur/.opam/default/bin"
+#  ; ocaml = Ok External "/home/brasseur/.opam/default/bin/ocaml"
+#  ; ocamlc = External "/home/brasseur/.opam/default/bin/ocamlc.opt"
+#  ; ocamlopt = Ok External "/home/brasseur/.opam/default/bin/ocamlopt.opt"
+#  ; ocamldep = Ok External "/home/brasseur/.opam/default/bin/ocamldep.opt"
+#  ; ocamlmklib = Ok External "/home/brasseur/.opam/default/bin/ocamlmklib.opt"
+#  ; env =
+#      map
+#        { "DUNE_OCAML_HARDCODED" : "/home/brasseur/.opam/default/lib"
+#        ; "DUNE_OCAML_STDLIB" : "/home/brasseur/.opam/default/lib/ocaml"
+#        ; "DUNE_SOURCEROOT" : "/home/brasseur/Documents/projet_GOCass/src"
+#        ; "INSIDE_DUNE" :
+#            "/home/brasseur/Documents/projet_GOCass/src/_build/default"
+#        ; "OCAMLFIND_IGNORE_DUPS_IN" :
+#            "/home/brasseur/Documents/projet_GOCass/src/_build/install/default/lib"
+#        ; "OCAMLPATH" :
+#            "/home/brasseur/Documents/projet_GOCass/src/_build/install/default/lib"
+#        ; "OCAMLTOP_INCLUDE_PATH" :
+#            "/home/brasseur/Documents/projet_GOCass/src/_build/install/default/lib/toplevel"
+#        ; "OCAML_COLOR" : "always"
+#        ; "OPAMCOLOR" : "always"
+#        }
+#  ; findlib_path = [ External "/home/brasseur/.opam/default/lib" ]
+#  ; arch_sixtyfour = true
+#  ; natdynlink_supported = true
+#  ; supports_shared_libraries = true
+#  ; ocaml_config =
+#      { version = "4.13.1"
+#      ; standard_library_default = "/home/brasseur/.opam/default/lib/ocaml"
+#      ; standard_library = "/home/brasseur/.opam/default/lib/ocaml"
+#      ; standard_runtime = "the_standard_runtime_variable_was_deleted"
+#      ; ccomp_type = "cc"
+#      ; c_compiler = "gcc"
+#      ; ocamlc_cflags =
+#          [ "-O2"; "-fno-strict-aliasing"; "-fwrapv"; "-pthread"; "-fPIC" ]
+#      ; ocamlc_cppflags = [ "-D_FILE_OFFSET_BITS=64" ]
+#      ; ocamlopt_cflags =
+#          [ "-O2"; "-fno-strict-aliasing"; "-fwrapv"; "-pthread"; "-fPIC" ]
+#      ; ocamlopt_cppflags = [ "-D_FILE_OFFSET_BITS=64" ]
+#      ; bytecomp_c_compiler =
+#          [ "gcc"
+#          ; "-O2"
+#          ; "-fno-strict-aliasing"
+#          ; "-fwrapv"
+#          ; "-pthread"
+#          ; "-fPIC"
+#          ; "-D_FILE_OFFSET_BITS=64"
+#          ]
+#      ; bytecomp_c_libraries = [ "-lm"; "-lpthread" ]
+#      ; native_c_compiler =
+#          [ "gcc"
+#          ; "-O2"
+#          ; "-fno-strict-aliasing"
+#          ; "-fwrapv"
+#          ; "-pthread"
+#          ; "-fPIC"
+#          ; "-D_FILE_OFFSET_BITS=64"
+#          ]
+#      ; native_c_libraries = [ "-lm" ]
+#      ; cc_profile = []
+#      ; architecture = "amd64"
+#      ; model = "default"
+#      ; int_size = 63
+#      ; word_size = 64
+#      ; system = "linux"
+#      ; asm = [ "as" ]
+#      ; asm_cfi_supported = true
+#      ; with_frame_pointers = false
+#      ; ext_exe = ""
+#      ; ext_obj = ".o"
+#      ; ext_asm = ".s"
+#      ; ext_lib = ".a"
+#      ; ext_dll = ".so"
+#      ; os_type = "Unix"
+#      ; default_executable_name = "a.out"
+#      ; systhread_supported = true
+#      ; host = "x86_64-pc-linux-gnu"
+#      ; target = "x86_64-pc-linux-gnu"
+#      ; profiling = false
+#      ; flambda = false
+#      ; spacetime = false
+#      ; safe_string = true
+#      ; exec_magic_number = "Caml1999X030"
+#      ; cmi_magic_number = "Caml1999I030"
+#      ; cmo_magic_number = "Caml1999O030"
+#      ; cma_magic_number = "Caml1999A030"
+#      ; cmx_magic_number = "Caml1999Y030"
+#      ; cmxa_magic_number = "Caml1999Z030"
+#      ; ast_impl_magic_number = "Caml1999M030"
+#      ; ast_intf_magic_number = "Caml1999N030"
+#      ; cmxs_magic_number = "Caml1999D030"
+#      ; cmt_magic_number = "Caml1999T030"
+#      ; natdynlink_supported = true
+#      ; supports_shared_libraries = true
+#      ; windows_unicode = false
+#      }
+#  }
+$ (cd _build/default && /home/brasseur/.opam/default/bin/menhir -v parser.mly --base parser)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -intf parser.mli) > _build/default/.main.eobjs/parser.mli.d
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl parser.ml) > _build/default/.main.eobjs/parser.ml.d
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/ast.cmi -c -intf ast.mli)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/x86_64.cmi -c -intf x86_64.mli)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/tast.cmi -c -intf tast.mli)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/lib.cmo -c -impl lib.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/parser.cmi -c -intf parser.mli)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/typing.cmo -c -impl typing.ml)
+> File "typing.ml", line 83, characters 12-37:
+> 83 |   | PEunop (Uneg | Unot | Ustar as op, e1) ->
+>                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/byte/x86_64.cmo -c -impl x86_64.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/pretty.cmo -c -impl pretty.ml)
+> File "pretty.ml", lines 183-188, characters 18-46:
+> 183 | ..................function
+> 184 |   | Tint -> Format.fprintf fmt "int"
+> 185 |   | Tbool -> Format.fprintf fmt "bool"
+> 186 |   | Tstring -> Format.fprintf fmt "string"
+> 187 |   | Tstruct s -> Format.fprintf fmt "%s" s.s_name
+> 188 |   | Tptr ty -> Format.fprintf fmt "*%a" typ ty
+> Warning 8 [partial-match]: this pattern-matching is not exhaustive.
+> Here is an example of a case that is not matched:
+> Tmany _
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/lib.cmx -c -impl lib.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/lexer.cmo -c -impl lexer.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/compile.cmo -c -impl compile.ml)
+> File "compile.ml", line 87, characters 13-40:
+> 87 |   | TEbinop (Blt | Ble | Bgt | Bge as op, e1, e2) ->
+>                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+> File "compile.ml", line 89, characters 13-51:
+> 89 |   | TEbinop (Badd | Bsub | Bmul | Bdiv | Bmod as op, e1, e2) ->
+>                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+> File "compile.ml", line 91, characters 13-28:
+> 91 |   | TEbinop (Beq | Bne as op, e1, e2) ->
+>                   ^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/x86_64.cmx -c -impl x86_64.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/rewrite.cmo -c -impl rewrite.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/typing.cmx -c -impl typing.ml)
+> File "typing.ml", line 83, characters 12-37:
+> 83 |   | PEunop (Uneg | Unot | Ustar as op, e1) ->
+>                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/lexer.cmx -c -impl lexer.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/pretty.cmx -c -impl pretty.ml)
+> File "pretty.ml", lines 183-188, characters 18-46:
+> 183 | ..................function
+> 184 |   | Tint -> Format.fprintf fmt "int"
+> 185 |   | Tbool -> Format.fprintf fmt "bool"
+> 186 |   | Tstring -> Format.fprintf fmt "string"
+> 187 |   | Tstruct s -> Format.fprintf fmt "%s" s.s_name
+> 188 |   | Tptr ty -> Format.fprintf fmt "*%a" typ ty
+> Warning 8 [partial-match]: this pattern-matching is not exhaustive.
+> Here is an example of a case that is not matched:
+> Tmany _
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/main.cmo -c -impl main.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/compile.cmx -c -impl compile.ml)
+> File "compile.ml", line 87, characters 13-40:
+> 87 |   | TEbinop (Blt | Ble | Bgt | Bge as op, e1, e2) ->
+>                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+> File "compile.ml", line 89, characters 13-51:
+> 89 |   | TEbinop (Badd | Bsub | Bmul | Bdiv | Bmod as op, e1, e2) ->
+>                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+> File "compile.ml", line 91, characters 13-28:
+> 91 |   | TEbinop (Beq | Bne as op, e1, e2) ->
+>                   ^^^^^^^^^^^^^^^
+> Warning 26 [unused-var]: unused variable op.
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/main.cmx -c -impl main.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/rewrite.cmx -c -impl rewrite.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/byte/parser.cmo -c -impl parser.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -o main.bc .main.eobjs/byte/lib.cmo .main.eobjs/byte/typing.cmo .main.eobjs/byte/x86_64.cmo .main.eobjs/byte/compile.cmo .main.eobjs/byte/parser.cmo .main.eobjs/byte/lexer.cmo .main.eobjs/byte/pretty.cmo .main.eobjs/byte/rewrite.cmo .main.eobjs/byte/main.cmo)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/parser.cmx -c -impl parser.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -o main.exe .main.eobjs/native/lib.cmx .main.eobjs/native/typing.cmx .main.eobjs/native/x86_64.cmx .main.eobjs/native/compile.cmx .main.eobjs/native/parser.cmx .main.eobjs/native/lexer.cmx .main.eobjs/native/pretty.cmx .main.eobjs/native/rewrite.cmx .main.eobjs/native/main.cmx)
