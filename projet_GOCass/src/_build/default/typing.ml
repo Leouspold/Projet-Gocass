@@ -47,14 +47,11 @@ module Env = struct
   let empty = M.empty
   let find = M.find
   let add env v = M.add v.v_name v env
-
   let all_vars = ref []
   let check_unused () =
     let check v =
       if v.v_name <> "_" && (* TODO used *) true then error v.v_loc "unused variable" in
     List.iter check !all_vars
-
-
   let var x loc ?used ty env =
     let v = new_var x loc ?used ty in
     all_vars := v :: !all_vars;
@@ -118,8 +115,14 @@ and expr_desc env loc = function
 let found_main = ref false
 
 (* 1. declare structures *)
+
+let decl_struct = Hashtbl.create 0
+
 let phase1 = function
-  | PDstruct { ps_name = { id = id; loc = loc }} -> (* TODO *) ()
+  | PDstruct { ps_name = { id = id; loc = loc }} -> 
+    if not (Hashtbl.mem decl_struct id)
+      then Hashtbl.add decl_struct id { s_name = id; s_fields = Hashtbl.create 0 }
+      else error loc "Structure name already used"
   | PDfunction _ -> ()
 
 let sizeof = function
@@ -127,11 +130,54 @@ let sizeof = function
   | _ -> (* TODO *) assert false 
 
 (* 2. declare functions and type fields *)
+
+let rec dup_exist = function  (*verifie l'existence de doublons dans une liste*)
+  | [] -> false
+  | hd::tl -> List.exists ((=) hd) tl || dup_exist tl
+
+let decl_function = Hashtbl.create 0
+
+let rec ptyp_declared = function
+  | PTptr t -> ptyp_declared t
+  | PTident { id = id; loc = loc } -> (Hashtbl.mem decl_struct id)
+
+let rec ptyp_to_typ = function
+  | PTptr t -> Tptr (ptyp_to_typ t)
+  | PTident { id = id; loc = loc } -> match id with
+    | "bool" -> Tbool
+    | "int" -> Tint
+    | "string" -> Tstring
+    | s -> Tstruct(Hashtbl.find decl_struct (String.sub s 7 ((String.length s)-8)))
+
+let rec param_to_var = function 
+  | ({ id = id; loc = loc }, ptyp) -> new_var id loc (ptyp_to_typ ptyp)
+
+let pfield_to_field = function
+  | ({ id = id; loc = loc }, ptyp) -> { f_name = id; f_typ = (ptyp_to_typ ptyp); f_ofs = 0}
+
+
 let phase2 = function
-  | PDfunction { pf_name={id; loc}; pf_params=pl; pf_typ=tyl; } ->
-     (* TODO *) () 
-  | PDstruct { ps_name = {id}; ps_fields = fl } ->
-     (* TODO *) () 
+  | PDfunction { pf_name={id=id; loc=loc}; pf_params=pl; pf_typ=tyl; } ->
+      if (Hashtbl.mem decl_function id)   (* fonction déjà déclareé *)
+        then error loc "Function already declared"
+      else if (dup_exist (List.map fst pl))  (* unicités des noms de variables *)
+        then error loc "Multiple variables holding the same name in function declaration"
+      else if not (List.for_all ptyp_declared (List.map snd pl))  (* types biens formés *)
+        || not (List.for_all ptyp_declared tyl)  (* types biens formés *)
+        then error loc "Invalid data type used in function declaration"
+      else Hashtbl.add decl_function id { 
+        fn_name = id;
+        fn_params = (List.map param_to_var pl); 
+        fn_typ = (List.map ptyp_to_typ tyl) }
+  | PDstruct { ps_name = {id=id; loc=loc}; ps_fields = fl } ->
+      if not (Hashtbl.mem decl_struct id)  (*structure bien déclarée*)
+        then error loc "Unbound structure value"
+      else if (dup_exist (List.map fst fl))  (* unicité des noms de variables *)
+        then error loc "Multiple variables holding the same name in structure declaration"
+      else if not (List.for_all ptyp_declared (List.map snd fl))  (* types biens formés *)
+        then error loc "Invalid data type used in structure declaration"
+      else List.iter (fun x -> Hashtbl.add (Hashtbl.find decl_struct id).s_fields (fst x).id (pfield_to_field x)) fl
+
 
 (* 3. type check function bodies *)
 let decl = function
