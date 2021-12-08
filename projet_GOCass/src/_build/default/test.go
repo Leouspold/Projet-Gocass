@@ -6,6 +6,16 @@ type T struct { a,b int }
 func foo(t  T) { t.a = t.a + 1; t.b = t.b + 1;  }
 func bar(t *T) { t.a = t.a + 1; t.b = t.b + 1;  }
 
+func foo2() (int,int) {
+  return 1,2
+}
+
+func foo3() (int,int) {
+    if true { fmt.Print("true") };
+    for { t.a = 12}
+}
+
+
 func main() {
 	var t T
 	t.a = 1

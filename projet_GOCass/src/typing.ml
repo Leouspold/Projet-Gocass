@@ -15,6 +15,7 @@ let error loc e = raise (Error (loc, e))
 (* TODO environnement pour les types structure *)
 
 let decl_struct = Hashtbl.create 0
+
 let decl_function = Hashtbl.create 0
 
 (* TODO environnement pour les fonctions *)
@@ -64,15 +65,18 @@ module Env = struct
   let all_vars = ref []
   let check_unused () =
     let check v =
-      if v.v_name <> "_" && (* TODO used *) true then error v.v_loc "unused variable" in
+      if v.v_name <> "_" && v.v_used then error v.v_loc "unused variable" in
     List.iter check !all_vars
   let var x loc ?used ty env =
     let v = new_var x loc ?used ty in
     all_vars := v :: !all_vars;
     add env v, v
-
   (* TODO type () et vecteur de types *)
 end
+
+let add_var env var typ = Env.var var.id var.loc typ env
+let vars_not_declared env l =
+  try let _ = List.map (function t -> Env.find t.id env) l in true with _ -> false
 
 let tvoid = Tmany []
 let make d ty = { expr_desc = d; expr_typ = ty }
@@ -94,6 +98,16 @@ let pfunc_type = function
 let rec ptr_bypass = function
   | Tptr t -> ptr_bypass t
   | t -> t
+
+let rec is_lvalue = function
+  | PEident _ -> true
+  | PEdot (e,_) -> is_lvalue e.pexpr_desc
+  | PEunop (Ustar, e) -> e.pexpr_desc <> PEnil
+  | _ -> false
+
+let rec make_list e = function
+  | 0 -> []
+  | n -> e::(make_list e (n-1))
 
 let rec expr env e =
  let e, ty, rt = expr_desc env e.pexpr_loc e.pexpr_desc in
@@ -125,10 +139,9 @@ and expr_desc env loc = function
       TEunop (Uamp, desc1), Tptr desc1.expr_typ, false
   | PEunop (Ustar, e1) ->
       let desc1,rt1 = expr env e1 in
-      if (desc1.expr_typ = Tptr _) 
-      then let Tptr ptr = desc1.expr_typ in
-        TEunop (Ustar, desc1), desc1.expr_typ,false
-      else error loc "Expression is not a pointer"  
+      (match desc1.expr_typ with
+       | Tptr _ -> TEunop (Ustar, desc1), desc1.expr_typ,false
+       | _ -> error loc "Expression is not a pointer")
   | PEunop (Uneg | Unot as op, e1) ->
       let desc1,rt1 = expr env e1 in
       if ((desc1.expr_typ = Tint)&&(op = Uneg))||((desc1.expr_typ = Tbool)&&(op = Unot))
@@ -164,7 +177,7 @@ and expr_desc env loc = function
      else error loc "If not holding a condition"
   | PEnil -> TEnil, tvoid, false
   | PEident {id=id} ->
-     (try let v = Env.find id env in 
+     (try let v = Env.find id !env in 
       (v.v_used <- true; TEident v, v.v_typ, false)
       with Not_found -> error loc ("Unbound variable " ^ id))
   | PEdot (e, id) ->
@@ -178,15 +191,42 @@ and expr_desc env loc = function
             TEdot (estruct, champ), champ.f_typ, false)
        | _ -> error loc "Expression is not a structure")
   | PEassign (lvl, el) ->
-     (* TODO *) TEassign ([], []), tvoid, false 
-  | PEreturn el ->
-     (* TODO *) TEreturn [], tvoid, true
-  | PEblock el ->
-     (* TODO *) TEblock [], tvoid, false
+     if List.exists (function x -> not (is_lvalue x.pexpr_desc)) lvl
+     then error loc "Can't assign on a non variable"
+     else if (List.length lvl) <> (List.length el)
+     then error loc "Assignation doesn't hold the right amount of elements"
+     else if (expr_list_to_type_list env loc lvl) <> (expr_list_to_type_list env loc el)
+     then error loc "Wrongly typed assignation"
+     else TEassign (List.map (function x -> fst (expr env x)) lvl, List.map (function x -> fst (expr env x)) el), tvoid, false 
+  | PEreturn el -> TEreturn (List.map (function x -> fst (expr env x)) el), tvoid, false
+  | PEblock el -> TEblock (List.map (function x -> fst (expr env x)) el), tvoid, false
   | PEincdec (e, op) ->
-     (* TODO *) assert false
-  | PEvars _ ->
-     (* TODO *) assert false 
+      let e, ty, rt = expr_desc env e.pexpr_loc e.pexpr_desc in
+      if ty <> Tint then error loc "++/-- on non int"
+      else TEincdec (make e ty,op),Tint,false
+  | PEvars (idl,typ,el) ->
+     if not (vars_not_declared !env idl) then error loc "Variable already declared" 
+     else match typ with 
+      | None ->
+        if el = [] then error loc "Must precise variable type or affect it"
+         else let typl = expr_list_to_type_list env loc el in
+              let varl = (List.map2 (fun x y -> snd (add_var (!env) x y)) idl typl) in
+              (env := (List.fold_left2 (fun e x y -> fst (add_var e x y)) !env idl typl));
+              TEvars(varl),tvoid, false
+      | Some t ->
+          let typl = make_list (ptyp_to_typ t) (List.length idl) in
+          let varl = (List.map2 (fun x y -> snd (add_var !env x y)) idl typl) in
+          (env := (List.fold_left2 (fun e x y -> fst (add_var e x y)) !env idl typl));
+          TEvars(varl),tvoid,false
+
+and expr_list_to_type_list env loc = function
+  | [] -> []
+  | t::q -> let _,ty,_ = (expr_desc env loc t.pexpr_desc) in 
+    (match ty with
+    | Tmany _ -> error loc "Multiple or no type in assignation"
+    | _ -> ty::(expr_list_to_type_list env loc q))
+
+
 
 let found_main = ref false
 
@@ -219,6 +259,10 @@ let pfield_to_field = function
 
 let phase2 = function
   | PDfunction { pf_name={id=id; loc=loc}; pf_params=pl; pf_typ=tyl; pf_body=body} ->
+      if id = "main" then 
+      if pl <> [] then error loc "main can't have arguments" else
+      if tyl <> [] then error loc "main must be unit" else
+      found_main := true;
       if (Hashtbl.mem decl_function id)   (* fonction déjà déclareé *)
         then error loc "Function already declared"
       else if (dup_exist (List.map fst pl))  (* unicités des noms de variables *)
@@ -289,11 +333,10 @@ let rec return_type pexprlist tyl =
   | PEunop (op,e) -> ((match op with
     | Uneg -> (test_id "int" pexpr.pexpr_loc hdtyl)
     | Unot -> (test_id "bool" pexpr.pexpr_loc hdtyl)
-    | Uamp -> (hdtyl = PTptr _)
-    | Ustar -> if (return_type [e] [PTptr _]) 
-      then (return_type [e] [PTptr hdtyl])
-      else error e.pexpr_loc "Expression is not a pointer" ))&&(return_type q tltyl)
-  | PEnil -> (hdtyl = PTptr _)&&(return_type q tltyl)
+    | Uamp -> (match hdtyl with | PTptr _ -> true | _ -> false)
+    | Ustar -> if (return_type [e] [PTptr hdtyl]) then true
+        else error e.pexpr_loc "Expression is not a pointer or not pointing to the right type" ))&&(return_type q tltyl)
+  | PEnil -> (match hdtyl with | PTptr _ -> true | _ -> false)&&(return_type q tltyl)
   | PEcall (idf,varlist) -> 
     let b,tylq = prefixe (Hashtbl.find decl_function idf.id).pf_typ tyl
       in b && (return_type q tylq)
@@ -321,22 +364,41 @@ let rec return_exists pexpr = let q = List.tl pexpr in match (List.hd pexpr).pex
 
 
 let decl = function
-  | PDfunction { pf_name={id; loc}; pf_body = e; pf_typ=tyl } ->
-    (* TODO check name and type *)
+  | PDfunction { pf_name={id; loc}; pf_params = params; pf_body = e; pf_typ=tyl } ->
+    if not (return_type [e] tyl) then error loc "A return doesn't hold the right type" else
+    if (tyl <> [])&&(not (return_exists [e])) then error loc "Missing return to match the right type" else
     let f = { fn_name = id; fn_params = []; fn_typ = []} in
-    let e, rt = expr Env.empty e in
+    let envir = ref (fst (Env.var "_" dummy_loc tvoid Env.empty)) in
+    envir := (List.fold_left2 (fun e x y -> fst (add_var e x y)) !envir (List.map fst params) (List.map ptyp_to_typ (List.map snd params)));
+    let e, rt = expr envir e in
     TDfunction (f, e)
   | PDstruct {ps_name={id}} ->
-    (* TODO *) let s = { s_name = id; s_fields = Hashtbl.create 5 } in
+     let s = { s_name = id; s_fields = Hashtbl.create 5 } in
      TDstruct s
+
+let rec hashtbl_exists_2 tbl f =
+  let b = ref false in (Hashtbl.iter (fun k v -> b := ((f v) || !b)) tbl ); !b
+
+let rec struct_parcours b sbase s =
+  Hashtbl.iter (fun _ x -> (match x.f_typ with 
+                | Tstruct s0 -> if s0 = sbase then (b := true) 
+                                else (struct_parcours b sbase s0)
+                | _ -> ()))
+                s.s_fields
 
 let file ~debug:b (imp, dl) =
   debug := b;
-  (* fmt_imported := imp; *)
+  fmt_imported := imp;
+  Hashtbl.add decl_struct "int" { s_name = "int"; s_fields = Hashtbl.create 0 };
+  Hashtbl.add decl_struct "bool" { s_name = "bool"; s_fields = Hashtbl.create 0 };
+  Hashtbl.add decl_struct "string" { s_name = "string"; s_fields = Hashtbl.create 0 };
   List.iter phase1 dl;
   List.iter phase2 dl;
   if not !found_main then error dummy_loc "missing method main";
   let dl = List.map decl dl in
+  let rec_struc = ref false in
+  Hashtbl.iter (fun _ x -> struct_parcours rec_struc x x) decl_struct;
+  if !rec_struc then error dummy_loc "A structure has been recursively defined";
   Env.check_unused (); (* TODO variables non utilisees *)
   if imp && not !fmt_used then error dummy_loc "fmt imported but not used";
   dl
