@@ -33,7 +33,7 @@ let rec ptyp_to_typ = function
     | "bool" -> Tbool
     | "int" -> Tint
     | "string" -> Tstring
-    | s -> Tstruct(Hashtbl.find decl_struct (String.sub s 7 ((String.length s)-8)))
+    | s -> Tstruct(Hashtbl.find decl_struct s)
 
 let rec eq_type ty1 ty2 = match ty1, ty2 with
   | Tint, Tint | Tbool, Tbool | Tstring, Tstring -> true
@@ -61,12 +61,13 @@ module Env = struct
   type t = var M.t
   let empty = M.empty
   let find = M.find
+  let for_all = M.for_all
   let add env v = M.add v.v_name v env
   let all_vars = ref []
-  let check_unused () =
-    let check v =
-      if v.v_name <> "_" && v.v_used then error v.v_loc "unused variable" in
-    List.iter check !all_vars
+  let check_unused env =
+    let check _ v =
+      if v.v_name <> "_" && not v.v_used then error v.v_loc "unused variable" else true in
+    let _ = for_all check env in ()
   let var x loc ?used ty env =
     let v = new_var x loc ?used ty in
     all_vars := v :: !all_vars;
@@ -75,8 +76,11 @@ module Env = struct
 end
 
 let add_var env var typ = Env.var var.id var.loc typ env
-let vars_not_declared env l =
-  try let _ = List.map (function t -> Env.find t.id env) l in true with _ -> false
+
+(*
+let vars_already_declared env l =
+  let var_already_decl env v = try let _ = Env.find v.id env in true with _ -> false in
+  List.exists (var_already_decl env) l *)
 
 let tvoid = Tmany []
 let make d ty = { expr_desc = d; expr_typ = ty }
@@ -98,6 +102,11 @@ let pfunc_type = function
 let rec ptr_bypass = function
   | Tptr t -> ptr_bypass t
   | t -> t
+
+let rec flat_type = function
+  | [] -> []
+  | (Tmany l)::q -> (flat_type l)@(flat_type q)
+  | t::q -> t::(flat_type q)
 
 let rec is_lvalue = function
   | PEident _ -> true
@@ -126,11 +135,11 @@ and expr_desc env loc = function
     (if (ty1 = Tint && ty2 = Tint)
       then TEbinop (op, make desc1 ty1, make desc2 ty2), Tint, false
       else error loc "Int operation on non ints")
-    | Beq | Bne ->
+    | Beq | Bne | Blt | Ble | Bgt | Bge ->
     (if (ty1 = ty2)
       then TEbinop (op, make desc1 ty1, make desc2 ty2), Tbool, false
       else error loc "Can't compare differently typed expressions")
-    | Blt | Ble | Bgt | Bge | Band | Bor ->
+    | Band | Bor ->
     (if (ty1 = Tbool && ty2 = Tbool)
       then TEbinop (op, make desc1 ty1, make desc2 ty2), Tbool, false
       else error loc "Bool operation on non bools"))
@@ -140,7 +149,7 @@ and expr_desc env loc = function
   | PEunop (Ustar, e1) ->
       let desc1,rt1 = expr env e1 in
       (match desc1.expr_typ with
-       | Tptr _ -> TEunop (Ustar, desc1), desc1.expr_typ,false
+       | Tptr typ -> TEunop (Ustar, desc1), typ,false
        | _ -> error loc "Expression is not a pointer")
   | PEunop (Uneg | Unot as op, e1) ->
       let desc1,rt1 = expr env e1 in
@@ -205,8 +214,8 @@ and expr_desc env loc = function
       if ty <> Tint then error loc "++/-- on non int"
       else TEincdec (make e ty,op),Tint,false
   | PEvars (idl,typ,el) ->
-     if not (vars_not_declared !env idl) then error loc "Variable already declared" 
-     else match typ with 
+     (* if (vars_already_declared !env idl) then error loc "Variable already declared" else *) 
+     match typ with 
       | None ->
         if el = [] then error loc "Must precise variable type or affect it"
          else let typl = expr_list_to_type_list env loc el in
@@ -222,10 +231,14 @@ and expr_desc env loc = function
 and expr_list_to_type_list env loc = function
   | [] -> []
   | t::q -> let _,ty,_ = (expr_desc env loc t.pexpr_desc) in 
+    (flat_type [ty])@(expr_list_to_type_list env loc q)
+
+and expr_list_to_type_list_unique env loc = function
+  | [] -> []
+  | t::q -> let _,ty,_ = (expr_desc env loc t.pexpr_desc) in 
     (match ty with
     | Tmany _ -> error loc "Multiple or no type in assignation"
     | _ -> ty::(expr_list_to_type_list env loc q))
-
 
 
 let found_main = ref false
@@ -310,68 +323,84 @@ let rec typ_to_ptyp = function
   | Tptr typ -> PTptr (typ_to_ptyp typ)
   | Tmany _ -> raise Exit
 
+let rec same_ptyp t1 t2 = match t1,t2 with
+  | PTident { id= id1 },PTident { id= id2 } -> (id1 = id2)
+  | PTptr pt1, PTptr pt2 -> same_id pt1 pt2
+  | _ -> false
+
+let rec typ_to_string = function
+  | Tint -> "int"
+  | Tbool -> "bool"
+  | Tstring -> "string"
+  | Tstruct { s_name = name; s_fields = fields} -> name
+  | Tptr typ -> "ptr "^(typ_to_string typ)
+  | Tmany _ -> raise Exit
+
 let block_bypass e = match e.pexpr_desc with
   | PEblock l -> l
   | PEskip -> []
   | _ -> raise Exit
 
-let rec return_type pexprlist tyl = 
+let rec return_type env pexprlist tyl = 
   if (pexprlist = []) then (tyl = []) else
+  if (tyl = []) then false else
   let pexpr,q,hdtyl,tltyl = (List.hd pexprlist),(List.tl pexprlist),(List.hd tyl),(List.tl tyl)
   in match pexpr.pexpr_desc with
-  | PEskip -> return_type q tyl
-  | PEconstant Cbool _ -> (test_id "bool" pexpr.pexpr_loc hdtyl)&&(return_type q tltyl)
-  | PEconstant Cint _ -> (test_id "int" pexpr.pexpr_loc hdtyl)&&(return_type q tltyl)
-  | PEconstant Cstring _ -> (test_id "string" pexpr.pexpr_loc hdtyl)&&(return_type q tltyl)
+  | PEskip -> return_type env q tyl
+  | PEconstant Cbool _ -> (test_id "bool" pexpr.pexpr_loc hdtyl)&&(return_type env q tltyl)
+  | PEconstant Cint _ -> (test_id "int" pexpr.pexpr_loc hdtyl)&&(return_type env q tltyl)
+  | PEconstant Cstring _ -> (test_id "string" pexpr.pexpr_loc hdtyl)&&(return_type env q tltyl)
   | PEbinop (op,_,_) -> (test_id (match op with
     | Badd -> "int"
     | Bsub -> "int"
     | Bmul -> "int"
     | Bdiv -> "int"
     | Bmod -> "int"
-    | _ -> "bool") pexpr.pexpr_loc hdtyl)&&(return_type q tltyl)
+    | _ -> "bool") pexpr.pexpr_loc hdtyl)&&(return_type env q tltyl)
   | PEunop (op,e) -> ((match op with
     | Uneg -> (test_id "int" pexpr.pexpr_loc hdtyl)
     | Unot -> (test_id "bool" pexpr.pexpr_loc hdtyl)
     | Uamp -> (match hdtyl with | PTptr _ -> true | _ -> false)
-    | Ustar -> if (return_type [e] [PTptr hdtyl]) then true
-        else error e.pexpr_loc "Expression is not a pointer or not pointing to the right type" ))&&(return_type q tltyl)
-  | PEnil -> (match hdtyl with | PTptr _ -> true | _ -> false)&&(return_type q tltyl)
+    | Ustar -> if (return_type env [e] [PTptr hdtyl]) then true
+        else error e.pexpr_loc "Expression is not a pointer or not pointing to the right type" ))&&(return_type env q tltyl)
+  | PEnil -> (match hdtyl with | PTptr _ -> true | _ -> false)&&(return_type env q tltyl)
   | PEcall (idf,varlist) -> 
     let b,tylq = prefixe (Hashtbl.find decl_function idf.id).pf_typ tyl
-      in b && (return_type q tylq)
-  | PEident idv -> (test_id idv.id pexpr.pexpr_loc hdtyl)
+      in b && (return_type env q tylq)
+  | PEident idv -> (same_ptyp (typ_to_ptyp (Env.find idv.id !env).v_typ) hdtyl)&&(return_type env q tltyl)
   | PEdot (e,s) ->
-    (let (b,exprstruct) = (hashtbl_exists decl_struct (function dstruct -> return_type [e] [PTident { loc = e.pexpr_loc; id = dstruct.s_name }])) in
+    (let (b,exprstruct) = (hashtbl_exists decl_struct (function dstruct -> return_type env [e] [PTident { loc = e.pexpr_loc; id = dstruct.s_name }])) in
       if not b then error e.pexpr_loc "Unbound structure or wrong expression"
     else if not (Hashtbl.mem exprstruct.s_fields s.id) then error s.loc "Unbound structure field"
     else try same_id (typ_to_ptyp (Hashtbl.find exprstruct.s_fields s.id).f_typ) hdtyl 
-      with Exit -> error pexpr.pexpr_loc "Internal error : field should not hold several or no types")&&(return_type q tltyl)
-  | PEassign _ -> return_type q tyl
-  | PEvars _ -> return_type q tyl
-  | PEif (_,e1,e2) -> ((return_type ((block_bypass e1)@q) tyl) && (return_type ((block_bypass e2)@q) tyl))
+      with Exit -> error pexpr.pexpr_loc "Internal error : field should not hold several or no types")&&(return_type env q tltyl)
+  | PEassign _ -> return_type env q tyl
+  | PEvars _ -> return_type env q tyl
+  | PEif (_,e1,e2) -> ((return_type env ((block_bypass e1)@q) tyl) && (return_type env ((block_bypass e2)@q) tyl))
   | PEreturn _ -> error pexpr.pexpr_loc "Internal error : wrong return expression verification" (*impossible case*)
-  | PEblock _ -> error pexpr.pexpr_loc "Internal error : wrong return expression verification" (*impossible case*)
-  | PEfor (e1,e2) -> (return_type ((block_bypass e2)@q) tyl)
-  | PEincdec _ -> (test_id "int" pexpr.pexpr_loc hdtyl)&&(return_type q tltyl)
+  | PEblock e -> (return_type env e [hdtyl])&&(return_type env q tltyl)
+  | PEfor (e1,e2) -> (return_type env ((block_bypass e2)@q) tyl)
+  | PEincdec _ -> (test_id "int" pexpr.pexpr_loc hdtyl)&&(return_type env q tltyl)
 
-let rec return_exists pexpr = let q = List.tl pexpr in match (List.hd pexpr).pexpr_desc with
-  | PEif (e1,e2,e3) -> (((return_exists (block_bypass e2)) && (return_exists (block_bypass e3))) || return_exists q)
-  | PEreturn _ -> true
-  | PEblock l -> ((return_exists l)||(return_exists q))
-  | PEfor (e1,e2) -> ((return_exists (block_bypass e2))||(return_exists q))
-  | _ -> return_exists q
+let rec return_exists env pexpr tyl loc = 
+  if (pexpr = []) then false else
+  let q = List.tl pexpr in match (List.hd pexpr).pexpr_desc with
+  | PEif (e1,e2,e3) -> (((return_exists env (block_bypass e2) tyl loc) && (return_exists env (block_bypass e3) tyl loc)) || return_exists env q tyl loc)
+  | PEreturn e -> if not (return_type env e tyl) then error loc "A return doesn't hold the right type" else true
+  | PEblock l -> ((return_exists env l tyl loc)||(return_exists env q tyl loc))
+  | PEfor (e1,e2) -> ((return_exists env (block_bypass e2) tyl loc)||(return_exists env q) tyl loc)
+  | _ -> return_exists env q tyl loc
 
 
 let decl = function
   | PDfunction { pf_name={id; loc}; pf_params = params; pf_body = e; pf_typ=tyl } ->
-    if not (return_type [e] tyl) then error loc "A return doesn't hold the right type" else
-    if (tyl <> [])&&(not (return_exists [e])) then error loc "Missing return to match the right type" else
     let f = { fn_name = id; fn_params = []; fn_typ = []} in
     let envir = ref (fst (Env.var "_" dummy_loc tvoid Env.empty)) in
     envir := (List.fold_left2 (fun e x y -> fst (add_var e x y)) !envir (List.map fst params) (List.map ptyp_to_typ (List.map snd params)));
-    let e, rt = expr envir e in
-    TDfunction (f, e)
+    let ex, rt = expr envir e in
+    (if (tyl <> [])&&(not (return_exists envir [e] tyl loc)) then error loc "Missing return to match the right type";
+      Env.check_unused !envir;
+    TDfunction (f, ex))
   | PDstruct {ps_name={id}} ->
      let s = { s_name = id; s_fields = Hashtbl.create 5 } in
      TDstruct s
@@ -392,13 +421,12 @@ let file ~debug:b (imp, dl) =
   Hashtbl.add decl_struct "int" { s_name = "int"; s_fields = Hashtbl.create 0 };
   Hashtbl.add decl_struct "bool" { s_name = "bool"; s_fields = Hashtbl.create 0 };
   Hashtbl.add decl_struct "string" { s_name = "string"; s_fields = Hashtbl.create 0 };
-  List.iter phase1 dl;
-  List.iter phase2 dl;
+  List.iter phase1 dl; (* print_string "phase 1 completee\n"; *)
+  List.iter phase2 dl; (* print_string "phase 2 completee\n"; *)
   if not !found_main then error dummy_loc "missing method main";
-  let dl = List.map decl dl in
+  let dl = List.map decl dl in (* print_string "phase 3 completee\n"; *)
   let rec_struc = ref false in
   Hashtbl.iter (fun _ x -> struct_parcours rec_struc x x) decl_struct;
   if !rec_struc then error dummy_loc "A structure has been recursively defined";
-  Env.check_unused (); (* TODO variables non utilisees *)
   if imp && not !fmt_used then error dummy_loc "fmt imported but not used";
   dl
