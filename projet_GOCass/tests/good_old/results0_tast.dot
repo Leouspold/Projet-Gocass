@@ -1,0 +1,69 @@
+digraph ast {
+node [shape=plaintext];
+root [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >*</b></td></tr></table>>]
+TDfunction_1 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '3'><b >TDfunction</b></td></tr><tr ><td colspan = '3'>fn_name = "foo"</td></tr><tr ><td port='fn_params'>fn_params</td><td port='fn_typ'>fn_typ</td><td port='expr'>expr</td></tr></table>>]
+root -> TDfunction_1
+TEblock_2 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEblock</b></td></tr><tr ><td port='expr_list'>expr_list</td></tr></table>>]
+TDfunction_1:expr -> TEblock_2
+TEreturn_3 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEreturn</b></td></tr><tr ><td port='expr_list'>expr_list</td></tr></table>>]
+TEblock_2:expr_list -> TEreturn_3
+TEident_4 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEident</b></td></tr><tr ><td port='var'>var</td></tr></table>>]
+TEreturn_3:expr_list -> TEident_4
+var_5 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >var</b></td></tr><tr ><td colspan = '1'>v_name = "x"</td></tr><tr ><td colspan = '1'>v_id = "2"</td></tr><tr ><td colspan = '1'>v_used = "true"</td></tr><tr ><td colspan = '1'>v_addr = "false"</td></tr><tr ><td port='v_typ'>v_typ</td></tr></table>>]
+TEident_4:var -> var_5
+Tint_6 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Tint</b></td></tr></table>>]
+var_5:v_typ -> Tint_6
+TEbinop_7 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '2'><b >TEbinop</b></td></tr><tr ><td colspan = '2'>binop = "+"</td></tr><tr ><td port='pexpr_left'>pexpr_left</td><td port='pexpr_right'>pexpr_right</td></tr></table>>]
+TEreturn_3:expr_list -> TEbinop_7
+TEident_8 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEident</b></td></tr><tr ><td port='var'>var</td></tr></table>>]
+TEbinop_7:pexpr_left -> TEident_8
+var_9 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >var</b></td></tr><tr ><td colspan = '1'>v_name = "x"</td></tr><tr ><td colspan = '1'>v_id = "2"</td></tr><tr ><td colspan = '1'>v_used = "true"</td></tr><tr ><td colspan = '1'>v_addr = "false"</td></tr><tr ><td port='v_typ'>v_typ</td></tr></table>>]
+TEident_8:var -> var_9
+Tint_10 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Tint</b></td></tr></table>>]
+var_9:v_typ -> Tint_10
+TEconstant_11 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEconstant</b></td></tr><tr ><td port='constant'>constant</td></tr></table>>]
+TEbinop_7:pexpr_right -> TEconstant_11
+Cint_12 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Cint</b></td></tr><tr ><td colspan = '1'>int64 = "1"</td></tr></table>>]
+TEconstant_11:constant -> Cint_12
+TDfunction_13 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '3'><b >TDfunction</b></td></tr><tr ><td colspan = '3'>fn_name = "main"</td></tr><tr ><td port='fn_params'>fn_params</td><td port='fn_typ'>fn_typ</td><td port='expr'>expr</td></tr></table>>]
+root -> TDfunction_13
+TEblock_14 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEblock</b></td></tr><tr ><td port='expr_list'>expr_list</td></tr></table>>]
+TDfunction_13:expr -> TEblock_14
+TEvars_15 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEvars</b></td></tr><tr ><td port='var_list'>var_list</td></tr></table>>]
+TEblock_14:expr_list -> TEvars_15
+var_16 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >var</b></td></tr><tr ><td colspan = '1'>v_name = "x"</td></tr><tr ><td colspan = '1'>v_id = "5"</td></tr><tr ><td colspan = '1'>v_used = "false"</td></tr><tr ><td colspan = '1'>v_addr = "false"</td></tr><tr ><td port='v_typ'>v_typ</td></tr></table>>]
+TEvars_15:var_list -> var_16
+Tint_17 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Tint</b></td></tr></table>>]
+var_16:v_typ -> Tint_17
+var_18 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >var</b></td></tr><tr ><td colspan = '1'>v_name = "y"</td></tr><tr ><td colspan = '1'>v_id = "6"</td></tr><tr ><td colspan = '1'>v_used = "false"</td></tr><tr ><td colspan = '1'>v_addr = "false"</td></tr><tr ><td port='v_typ'>v_typ</td></tr></table>>]
+TEvars_15:var_list -> var_18
+Tint_19 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Tint</b></td></tr></table>>]
+var_18:v_typ -> Tint_19
+TEprint_20 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEprint</b></td></tr><tr ><td port='expr_list'>expr_list</td></tr></table>>]
+TEblock_14:expr_list -> TEprint_20
+TEbinop_21 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '2'><b >TEbinop</b></td></tr><tr ><td colspan = '2'>binop = "+"</td></tr><tr ><td port='pexpr_left'>pexpr_left</td><td port='pexpr_right'>pexpr_right</td></tr></table>>]
+TEprint_20:expr_list -> TEbinop_21
+TEbinop_22 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '2'><b >TEbinop</b></td></tr><tr ><td colspan = '2'>binop = "+"</td></tr><tr ><td port='pexpr_left'>pexpr_left</td><td port='pexpr_right'>pexpr_right</td></tr></table>>]
+TEbinop_21:pexpr_left -> TEbinop_22
+TEident_23 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEident</b></td></tr><tr ><td port='var'>var</td></tr></table>>]
+TEbinop_22:pexpr_left -> TEident_23
+var_24 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >var</b></td></tr><tr ><td colspan = '1'>v_name = "x"</td></tr><tr ><td colspan = '1'>v_id = "7"</td></tr><tr ><td colspan = '1'>v_used = "true"</td></tr><tr ><td colspan = '1'>v_addr = "false"</td></tr><tr ><td port='v_typ'>v_typ</td></tr></table>>]
+TEident_23:var -> var_24
+Tint_25 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Tint</b></td></tr></table>>]
+var_24:v_typ -> Tint_25
+TEident_26 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEident</b></td></tr><tr ><td port='var'>var</td></tr></table>>]
+TEbinop_22:pexpr_right -> TEident_26
+var_27 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >var</b></td></tr><tr ><td colspan = '1'>v_name = "y"</td></tr><tr ><td colspan = '1'>v_id = "8"</td></tr><tr ><td colspan = '1'>v_used = "true"</td></tr><tr ><td colspan = '1'>v_addr = "false"</td></tr><tr ><td port='v_typ'>v_typ</td></tr></table>>]
+TEident_26:var -> var_27
+Tint_28 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Tint</b></td></tr></table>>]
+var_27:v_typ -> Tint_28
+TEconstant_29 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEconstant</b></td></tr><tr ><td port='constant'>constant</td></tr></table>>]
+TEbinop_21:pexpr_right -> TEconstant_29
+Cint_30 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Cint</b></td></tr><tr ><td colspan = '1'>int64 = "1"</td></tr></table>>]
+TEconstant_29:constant -> Cint_30
+TEconstant_31 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >TEconstant</b></td></tr><tr ><td port='constant'>constant</td></tr></table>>]
+TEprint_20:expr_list -> TEconstant_31
+Cstring_32 [label=<<table border='0' cellborder='1' cellspacing='0' cellpadding='4'><tr ><td colspan = '1'><b >Cstring</b></td></tr><tr ><td colspan = '1'>string = "
+"</td></tr></table>>]
+TEconstant_31:constant -> Cstring_32
+}
