@@ -145,6 +145,7 @@ and expr_desc env loc = function
       else error loc "Bool operation on non bools"))
   | PEunop (Uamp, e1) ->
       let desc1,rt1 = expr env e1 in
+      if not (is_lvalue e1.pexpr_desc) then error loc "variable isn't l-value" else
       TEunop (Uamp, desc1), Tptr desc1.expr_typ, false
   | PEunop (Ustar, e1) ->
       let desc1,rt1 = expr env e1 in
@@ -169,10 +170,15 @@ and expr_desc env loc = function
   | PEcall ({id="new"}, _) ->
      error loc "new expects a type"
   | PEcall (id, el) ->
-      if Hashtbl.mem decl_function id.id
-      then let f = (pfunc_to_function (Hashtbl.find decl_function id.id)) in
+    let pf = Hashtbl.find decl_function id.id in
+      if not (Hashtbl.mem decl_function id.id)
+      then error loc ("No such function " ^ id.id)
+      else if (List.length pf.pf_params) <> (List.length (expr_list_to_type_list env loc el))
+      then error loc "Function holds wrong number of arguments"
+      else if (List.map ptyp_to_typ (List.map (function x -> snd x) pf.pf_params)) <> (expr_list_to_type_list env loc el)
+      then error loc "Function holds wrongly typed parameters"
+      else let f = (pfunc_to_function pf) in
          TEcall (f,List.map (function x -> fst (expr env x)) el ), pfunc_type f.fn_typ, false
-      else error loc ("No such function " ^ id.id)
   | PEfor (e, b) ->
      let texpr,trt = expr env e in
      let bexpr,brt = expr env b in
@@ -209,9 +215,10 @@ and expr_desc env loc = function
      else TEassign (List.map (function x -> fst (expr env x)) lvl, List.map (function x -> fst (expr env x)) el), tvoid, false 
   | PEreturn el -> TEreturn (List.map (function x -> fst (expr env x)) el), tvoid, false
   | PEblock el -> TEblock (List.map (function x -> fst (expr env x)) el), tvoid, false
-  | PEincdec (e, op) ->
-      let e, ty, rt = expr_desc env e.pexpr_loc e.pexpr_desc in
+  | PEincdec (pe, op) ->
+      let e, ty, rt = expr_desc env pe.pexpr_loc pe.pexpr_desc in
       if ty <> Tint then error loc "++/-- on non int"
+      else if not (is_lvalue pe.pexpr_desc) then error loc "variable isn't l-value"
       else TEincdec (make e ty,op),Tint,false
   | PEvars (idl,typ,el) ->
      (* if (vars_already_declared !env idl) then error loc "Variable already declared" else *) 
@@ -401,7 +408,8 @@ let decl = function
     (if (tyl <> [])&&(not (return_exists envir [e] tyl loc)) then error loc "Missing return to match the right type";
       Env.check_unused !envir;
     TDfunction (f, ex))
-  | PDstruct {ps_name={id}} ->
+  | PDstruct {ps_name={id}; ps_fields=pf} ->
+     if dup_exist (List.map (function x -> (fst x).id) pf) then error dummy_loc "Structure has fields holding same name" else
      let s = { s_name = id; s_fields = Hashtbl.create 5 } in
      TDstruct s
 

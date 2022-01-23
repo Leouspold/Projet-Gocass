@@ -1,10 +1,10 @@
 # dune build @all
 # OCAMLPARAM: unset
 # Workspace root: /home/brasseur/Documents/Projet-Gocass/projet_GOCass/src
-$ /usr/bin/nproc > /tmp/dune084a4a.output 2> /dev/null
+$ /usr/bin/nproc > /tmp/dune896fea.output 2> /dev/null
 # Auto-detected concurrency: 4
 # disable binary cache
-$ /home/brasseur/.opam/default/bin/ocamlc.opt -config > /tmp/dunefcefa2.output
+$ /home/brasseur/.opam/default/bin/ocamlc.opt -config > /tmp/duneac74f5.output
 # Dune context:
 #  { name = "default"
 #  ; kind = "default"
@@ -112,66 +112,10 @@ $ /home/brasseur/.opam/default/bin/ocamlc.opt -config > /tmp/dunefcefa2.output
 #      ; windows_unicode = false
 #      }
 #  }
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamllex -q -o lexer.ml lexer.mll)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl lib.ml) > _build/default/.main.eobjs/lib.ml.d
 $ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl compile.ml) > _build/default/.main.eobjs/compile.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl main.ml) > _build/default/.main.eobjs/main.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl pretty.ml) > _build/default/.main.eobjs/pretty.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl rewrite.ml) > _build/default/.main.eobjs/rewrite.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl typing.ml) > _build/default/.main.eobjs/typing.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl x86_64.ml) > _build/default/.main.eobjs/x86_64.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -intf ast.mli) > _build/default/.main.eobjs/ast.mli.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl lexer.ml) > _build/default/.main.eobjs/lexer.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -intf tast.mli) > _build/default/.main.eobjs/tast.mli.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -intf x86_64.mli) > _build/default/.main.eobjs/x86_64.mli.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/menhir -v parser.mly --base parser)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -intf parser.mli) > _build/default/.main.eobjs/parser.mli.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamldep.opt -modules -impl parser.ml) > _build/default/.main.eobjs/parser.ml.d
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/ast.cmi -c -intf ast.mli)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/x86_64.cmi -c -intf x86_64.mli)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/lib.cmo -c -impl lib.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/parser.cmi -c -intf parser.mli)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/tast.cmi -c -intf tast.mli)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/byte/x86_64.cmo -c -impl x86_64.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/lexer.cmo -c -impl lexer.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/lib.cmx -c -impl lib.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/x86_64.cmx -c -impl x86_64.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/typing.cmo -c -impl typing.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/lexer.cmx -c -impl lexer.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/pretty.cmo -c -impl pretty.ml)
 $ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/compile.cmo -c -impl compile.ml)
-> File "compile.ml", line 87, characters 13-40:
-> 87 |   | TEbinop (Blt | Ble | Bgt | Bge as op, e1, e2) ->
->                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> Warning 26 [unused-var]: unused variable op.
-> File "compile.ml", line 89, characters 13-51:
-> 89 |   | TEbinop (Badd | Bsub | Bmul | Bdiv | Bmod as op, e1, e2) ->
->                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> Warning 26 [unused-var]: unused variable op.
-> File "compile.ml", line 91, characters 13-28:
-> 91 |   | TEbinop (Beq | Bne as op, e1, e2) ->
->                   ^^^^^^^^^^^^^^^
-> Warning 26 [unused-var]: unused variable op.
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/rewrite.cmo -c -impl rewrite.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/typing.cmx -c -impl typing.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/byte/parser.cmo -c -impl parser.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/parser.cmx -c -impl parser.ml)
 $ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -bin-annot -I .main.eobjs/byte -no-alias-deps -opaque -o .main.eobjs/byte/main.cmo -c -impl main.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/pretty.cmx -c -impl pretty.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/compile.cmx -c -impl compile.ml)
-> File "compile.ml", line 87, characters 13-40:
-> 87 |   | TEbinop (Blt | Ble | Bgt | Bge as op, e1, e2) ->
->                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> Warning 26 [unused-var]: unused variable op.
-> File "compile.ml", line 89, characters 13-51:
-> 89 |   | TEbinop (Badd | Bsub | Bmul | Bdiv | Bmod as op, e1, e2) ->
->                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> Warning 26 [unused-var]: unused variable op.
-> File "compile.ml", line 91, characters 13-28:
-> 91 |   | TEbinop (Beq | Bne as op, e1, e2) ->
->                   ^^^^^^^^^^^^^^^
-> Warning 26 [unused-var]: unused variable op.
 $ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/main.cmx -c -impl main.ml)
-$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/rewrite.cmx -c -impl rewrite.ml)
+$ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -I .main.eobjs/byte -I .main.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o .main.eobjs/native/compile.cmx -c -impl compile.ml)
 $ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlc.opt -g -o main.bc .main.eobjs/byte/lib.cmo .main.eobjs/byte/typing.cmo .main.eobjs/byte/x86_64.cmo .main.eobjs/byte/compile.cmo .main.eobjs/byte/parser.cmo .main.eobjs/byte/lexer.cmo .main.eobjs/byte/pretty.cmo .main.eobjs/byte/rewrite.cmo .main.eobjs/byte/main.cmo)
 $ (cd _build/default && /home/brasseur/.opam/default/bin/ocamlopt.opt -g -o main.exe .main.eobjs/native/lib.cmx .main.eobjs/native/typing.cmx .main.eobjs/native/x86_64.cmx .main.eobjs/native/compile.cmx .main.eobjs/native/parser.cmx .main.eobjs/native/lexer.cmx .main.eobjs/native/pretty.cmx .main.eobjs/native/rewrite.cmx .main.eobjs/native/main.cmx)
